@@ -1,58 +1,65 @@
 const webpack = require('webpack');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const autoprefixer = require('autoprefixer'); 
-const UglifyJSPlugin = require('uglifyjs-webpack-plugin')
+const path = require('path');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-module.exports = {
-    entry: {
-        'iDisqus': './index.js',
-    },
-    output: {
-        path: __dirname + '/dist',
-        filename: '[name].min.js',
-        libraryTarget: 'umd',
-        library: '[name]'
-    },
+module.exports = function(env, argv) {
 
-    module: {
-        rules: [
-            {
-                test: /\.(scss|css)$/,
-                use: ExtractTextPlugin.extract({
-                    use:[
+    return {
+
+        devtool: argv.mode == 'production' ? 'source-maps' : 'eval',
+
+        entry: {
+            'iDisqus': './src/iDisqus.js',
+        },
+
+        output: {
+            path: path.resolve(__dirname, 'dist'),
+            filename: argv.mode == 'production' ? '[name].min.js' : '[name].js',
+            libraryTarget: 'umd',
+            library: '[name]'
+        },
+
+        stats: {
+            entrypoints: false,
+            children: false
+        },
+
+        module: {
+            rules: [
+                {
+                    test: /\.scss$/,
+                    use: [
+                        argv.mode == 'production' ? MiniCssExtractPlugin.loader : 'style-loader',
                         'css-loader',
-                        'sass-loader',
-                        {loader: 'postcss-loader', options: { plugins: () => [ require('autoprefixer') ] }}
-                    ],
-                    fallback: 'style-loader'
-                }),
-            },
-            {
-                test: /\.html$/,
-                use: [{
-                    loader: 'file-loader',
-                    options: {
-                        name: '[name].[ext]'
-                    }  
-                }]
-            }
-        ],
-    },
-    plugins: [
-        new ExtractTextPlugin('iDisqus.min.css')
-    ],
-    optimization: {
-        minimizer: [
-            new UglifyJSPlugin({
-                uglifyOptions: { 
-                    warnings: false,
-                    output: {
-                        comments: false,
-                        beautify: false,
-                    },
-                    ie8: false
+                        {
+                            loader: 'postcss-loader',
+                            options: { plugins: () => [ require('autoprefixer') ] }
+                        },
+                        'sass-loader'
+                    ]
                 }
+            ]
+        },
+
+        plugins: [
+            new MiniCssExtractPlugin({
+                filename: argv.mode == 'production' ? '[name].min.css' : '[name].css',
+                chunkFilename: '[name].css'
+            }),
+            new HtmlWebpackPlugin({
+                template: './src/demo.html',
+                filename: 'index.html',
+                inject: 'head'
             })
-        ]
+        ],
+
+        devServer: {
+            contentBase: path.join(__dirname, 'dist'),
+            compress: true,
+            port: 9000,
+            openPage: '/index.html'
+        }
     }
 };

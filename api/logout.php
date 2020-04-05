@@ -3,11 +3,10 @@
  * 退出
  *
  * @author   fooleap <fooleap@gmail.com>
- * @version  2018-03-10 14:02:20
+ * @version  2018-05-31 15:49:06
  * @link     https://github.com/fooleap/disqus-php-api
  *
  */
-namespace Emojione;
 require_once('init.php');
 header('Content-type:text/json');
-setcookie( 'user_id', '', time () - 100 );
+setcookie('access_token', '', time () - 100, substr(__DIR__, strlen($_SERVER['DOCUMENT_ROOT'])), $_SERVER['HTTP_HOST'], false, true); 
